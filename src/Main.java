@@ -1,4 +1,6 @@
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Main {
     static Database db;
@@ -13,6 +15,27 @@ public class Main {
             }
         }
 
+        Checkout checkout = Checkout.getInstance();
+
+        ProductBase temp1 = new ProductBase("1KG of Potatoes", 420, 1);
+        ProductBase temp2 = new ProductBase("1KG of Coal", 3215, 2);
+
+
+        List<CheckoutCommand> commands = new ArrayList<CheckoutCommand>();
+        CheckoutCommand commandOne = new CheckoutCommand(checkout, CheckoutCommand.Action.Add, temp1);
+        CheckoutCommand commandTwo = new CheckoutCommand(checkout, CheckoutCommand.Action.Add, temp2);
+        commands.add(commandOne);
+        commands.add(commandTwo);
+
+        for(CheckoutCommand command: commands) {
+            command.Call();
+        }
+
+        for(CheckoutCommand command: commands) {
+            command.Undo();
+        }
+
+        checkout.listItems();
     }
 
     private static void Initialize() throws SQLException, ClassNotFoundException {
