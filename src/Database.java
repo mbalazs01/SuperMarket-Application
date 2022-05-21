@@ -115,19 +115,39 @@ public class Database {
         }
     }
     public static class UserCRUD {
-        public static void Create(String firstname, String lastname, String password, String username) throws ClassNotFoundException, SQLException {
+        public static User Create(String firstname, String lastname, String password, String username) throws ClassNotFoundException, SQLException {
             String query = MessageFormat.format("INSERT INTO users SET" +
                     " firstname = \"{0}\", lastname = \"{1}\", password = \"{2}\"," +
                     " username = \"{3}\", balance = 0, isAdmin = 0", firstname, lastname, password, username);
             RunQuery(query, false);
+            return new User(firstname, lastname, username);
         }
         public static void Delete(String username) throws ClassNotFoundException, SQLException {
             String query = MessageFormat.format("DELETE FROM users WHERE username= \"{0}\"", username);
             RunQuery(query, false);
         }
-        public static void Update() throws SQLException, ClassNotFoundException {
-            String query = "";
-            RunQuery(query, false);
+        public static User Find(String username, String password) throws SQLException, ClassNotFoundException {
+            String query = MessageFormat.format("SELECT * FROM users WHERE (username = \"{0}\" AND password = \"{1}\") LIMIT 1", username, password);
+            ResultSet result = RunQuery(query);
+            if(result.next() == false) {
+                return null;
+            } else {
+                System.out.println("User Found " + result.getString("username"));
+                return new User(result.getString("firstname"), result.getString("lastname"), result.getString("username"));
+            }
+        }
+        public static boolean hasRegisteredUsers() throws SQLException, ClassNotFoundException {
+            String query = "SELECT COUNT(*) FROM users";
+            ResultSet result = RunQuery(query);
+
+            if(result.next()) {
+                int numUsers = result.getInt(1);
+
+                if(numUsers > 0) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
