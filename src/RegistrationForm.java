@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.*;
 
+// Edited version of RegistrationForm from https://www.youtube.com/watch?v=gCdj9OPAeT8
 public class RegistrationForm extends JDialog {
     private JTextField tfFirstName;
     private JTextField tfLastName;

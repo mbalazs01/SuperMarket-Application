@@ -4,6 +4,11 @@ public class ProductBase {
         this.price = price;
         this.productID = productID;
     }
+    public ProductBase(ProductBase other) {
+        this.name = other.getName();
+        this.price = other.getPrice();
+        this.productID = other.getProductID();
+    }
     private String name;
 
     private int productID;

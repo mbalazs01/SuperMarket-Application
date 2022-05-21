@@ -176,8 +176,8 @@ public class Database {
             String query = "";
             RunQuery(query, false);
         }
-        public static void Delete() throws ClassNotFoundException, SQLException {
-            String query = "";
+        public static void Delete(String productName) throws ClassNotFoundException, SQLException {
+            String query = MessageFormat.format("DELETE FROM products WHERE name= \"{0}\"", productName);
             RunQuery(query, false);
         }
     }

@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
 
+// Edited version of LoginForm from https://www.youtube.com/watch?v=gCdj9OPAeT8
 public class LoginForm extends JDialog {
     private JTextField tfUsername;
     private JPasswordField pfPassword;
