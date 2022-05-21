@@ -1,5 +1,4 @@
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
@@ -15,6 +14,10 @@ public class Main {
             }
         }
 
+        List<Category> categories = db.getCategories();
+        Database.ProductCRUD.Create(400, "Lays 100G", categories);
+
+        /*
         Checkout checkout = Checkout.getInstance();
 
         ProductBase temp1 = new ProductBase("1KG of Potatoes", 420, 1);
@@ -35,7 +38,7 @@ public class Main {
             command.Undo();
         }
 
-        checkout.listItems();
+        checkout.listItems(); */
     }
 
     private static void Initialize() throws SQLException, ClassNotFoundException {

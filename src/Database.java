@@ -2,6 +2,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
 import java.sql.*;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +28,6 @@ public class Database {
         }
         return instance;
     }
-
     public List<String> getUsernames() {
         return usernames;
     }
@@ -40,18 +40,90 @@ public class Database {
         return categories;
     }
 
+    public static ResultSet RunQuery(String query) throws ClassNotFoundException, SQLException {
+        Class.forName("com.mysql.jdbc.Driver");
+        String jdbcURL = "jdbc:mysql://localhost:3306/supermarketdb";
+        String username = "root";
+        String password = "";
+
+        Connection connection = DriverManager.getConnection(jdbcURL, username, password);
+        Statement st = connection.createStatement();
+        ResultSet result = st.executeQuery(query);
+        return result;
+    }
+
+    public static void RunQuery2(String query) throws ClassNotFoundException, SQLException {
+        Class.forName("com.mysql.jdbc.Driver");
+        String jdbcURL = "jdbc:mysql://localhost:3306/supermarketdb";
+        String username = "root";
+        String password = "";
+
+        Connection connection = DriverManager.getConnection(jdbcURL, username, password);
+        Statement st = connection.createStatement();
+        st.executeUpdate(query);
+    }
+    public static class UserCRUD {
+        public static void Create(String firstname, String lastname, String password, String username) throws ClassNotFoundException, SQLException {
+            String query = MessageFormat.format("INSERT INTO users SET" +
+                    " firstname = \"{0}\", lastname = \"{1}\", password = \"{2}\"," +
+                    " username = \"{3}\", balance = 0, isAdmin = 0", firstname, lastname, password, username);
+            RunQuery2(query);
+        }
+        public static void Remove() throws ClassNotFoundException, SQLException {
+            String query = "";
+            RunQuery(query);
+        }
+        public static void Update() throws SQLException, ClassNotFoundException {
+            String query = "";
+            RunQuery(query);
+        }
+        public static void Delete() throws ClassNotFoundException, SQLException {
+            String query = "";
+            RunQuery(query);
+        }
+    }
+
+    public static class ProductCRUD {
+        public static void Create(int price, String name, List<Category> categories) throws ClassNotFoundException, SQLException {
+            String query = MessageFormat.format("INSERT INTO products SET price = {0}, name = \"{1}\"", price, name);
+            RunQuery2(query);
+
+            for(Category category: categories) {
+                int categoryID = category.getId();
+                int productID = 0;
+
+                query = "SELECT * FROM products WHERE name = '" + name + "' ";
+                ResultSet result = RunQuery(query);
+
+                while (result.next()) {
+                    productID = result.getInt("productID");
+                }
+
+                query = MessageFormat.format("INSERT INTO product_category SET" +
+                        " productID = {0}, categoryID = {1}", productID, categoryID);
+                RunQuery2(query);
+            }
+        }
+        public static void Remove() throws ClassNotFoundException, SQLException {
+            String query = "";
+            RunQuery(query);
+        }
+        public static void Update() throws SQLException, ClassNotFoundException {
+            String query = "";
+            RunQuery(query);
+        }
+        public static void Delete() throws ClassNotFoundException, SQLException {
+            String query = "";
+            RunQuery(query);
+        }
+    }
+
+
     public static class UsernameImporter {
         public static List<String> Import() throws SQLException, ClassNotFoundException {
-            Class.forName("com.mysql.jdbc.Driver");
             List<String> resultList = new ArrayList<>();
-            String jdbcURL = "jdbc:mysql://localhost:3306/supermarketdb";
-            String username = "root";
-            String password = "";
-
-            Connection connection = DriverManager.getConnection(jdbcURL, username, password);
             String query = "SELECT * FROM users";
-            Statement st = connection.createStatement();
-            ResultSet result = st.executeQuery(query);
+            ResultSet result = RunQuery(query);
 
             while (result.next())
                 resultList.add(result.getString("username"));
@@ -64,16 +136,10 @@ public class Database {
 
     public static class RelationImporter {
         public static Multimap<Integer, Integer> Import() throws SQLException, ClassNotFoundException {
-            Class.forName("com.mysql.jdbc.Driver");
             Multimap<Integer, Integer> resultMultimap = ArrayListMultimap.create();
-            String jdbcURL = "jdbc:mysql://localhost:3306/supermarketdb";
-            String username = "root";
-            String password = "";
-
-            Connection connection = DriverManager.getConnection(jdbcURL, username, password);
             String query = "SELECT * FROM product_category";
-            Statement st = connection.createStatement();
-            ResultSet result = st.executeQuery(query);
+
+            ResultSet result = RunQuery(query);
 
             while (result.next()) {
                 resultMultimap.put(result.getInt("productID"), result.getInt("categoryID"));
@@ -87,16 +153,9 @@ public class Database {
 
     public static class ProductBaseImporter {
         public static List<ProductBase> Import() throws SQLException, ClassNotFoundException {
-            Class.forName("com.mysql.jdbc.Driver");
             List<ProductBase> resultList = new ArrayList<>();
-            String jdbcURL = "jdbc:mysql://localhost:3306/supermarketdb";
-            String username = "root";
-            String password = "";
-
-            Connection connection = DriverManager.getConnection(jdbcURL, username, password);
             String query = "SELECT * FROM products";
-            Statement st = connection.createStatement();
-            ResultSet result = st.executeQuery(query);
+            ResultSet result = RunQuery(query);
 
             while (result.next())
                 resultList.add(new ProductBase(
@@ -112,16 +171,9 @@ public class Database {
 
     public static class CategoryImporter {
         public static List<Category> Import() throws SQLException, ClassNotFoundException {
-            Class.forName("com.mysql.jdbc.Driver");
             List<Category> resultList = new ArrayList<>();
-            String jdbcURL = "jdbc:mysql://localhost:3306/supermarketdb";
-            String username = "root";
-            String password = "";
-
-            Connection connection = DriverManager.getConnection(jdbcURL, username, password);
             String query = "SELECT * FROM categories";
-            Statement st = connection.createStatement();
-            ResultSet result = st.executeQuery(query);
+            ResultSet result = RunQuery(query);
 
             while (result.next())
                 resultList.add(new Category(result.getString("category"), result.getInt("categoryID")));
