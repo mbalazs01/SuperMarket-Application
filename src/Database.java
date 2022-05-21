@@ -4,15 +4,16 @@ import com.google.common.collect.Multimap;
 import java.sql.*;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 // SINGLETON DATABASE
 public class Database {
     private List<String> usernames;
-    private List<Product> products;
-    private List<ProductBase> productBases;
-    Multimap<Integer, Integer> productCategoryRelations = ArrayListMultimap.create();
-    private List<Category> categories;
+    private HashMap<Integer, Product> products;
+    private HashMap<Integer, ProductBase> productBases;
+    private Multimap<Integer, Integer> productCategoryRelations = ArrayListMultimap.create();
+    private HashMap<Integer, Category> categories;
     static Database instance;
 
     private Database() throws SQLException, ClassNotFoundException {
@@ -20,6 +21,8 @@ public class Database {
         categories = CategoryImporter.Import();
         usernames = UsernameImporter.Import();
         productCategoryRelations = RelationImporter.Import();
+
+        products = BuildProducts();
     }
 
     public static Database getInstance() throws SQLException, ClassNotFoundException {
@@ -28,15 +31,56 @@ public class Database {
         }
         return instance;
     }
+
+    private HashMap<Integer, Product> BuildProducts() {
+        if(productBases.isEmpty() || productCategoryRelations.isEmpty()) {
+            return null;
+        }
+
+        HashMap<Integer, Product> products = new HashMap<>();
+        List<Category> productCategories = new ArrayList<Category>();
+
+        int productID ;
+        String productName;
+        int productPrice;
+        String productCategoriesString = "";
+        String productCategoriesIDs = "";
+
+        int categoryID = 0;
+        String categoryName = "";
+
+        for(int key: productCategoryRelations.keys()) {
+            productID = key;
+            productName = productBases.get(productID).getName();
+            productPrice = productBases.get(productID).getPrice();
+
+            for(int id: productCategoryRelations.get(key)) {
+                categoryID = id;
+                categoryName = categories.get(categoryID).getName();
+                productCategories.add(new Category(categoryName, categoryID));
+            }
+            for(Category c: productCategories) {
+                productCategoriesString += categoryName + "#";
+                productCategoriesIDs += categoryID + "#";
+            }
+
+            products.put(productID, new Product(productName, productPrice, productID, productCategoriesString, productCategoriesIDs));
+            productCategoriesString = "";
+            productCategoriesIDs = "";
+            productCategories.clear();
+        }
+
+        return products;
+    }
     public List<String> getUsernames() {
         return usernames;
     }
 
-    public List<Product> getProducts() {
+    public HashMap<Integer, Product> getProducts() {
         return products;
     }
 
-    public List<Category> getCategories() {
+    public HashMap<Integer, Category> getCategories() {
         return categories;
     }
 
@@ -52,41 +96,45 @@ public class Database {
         return result;
     }
 
-    public static void RunQuery2(String query) throws ClassNotFoundException, SQLException {
+    public static ResultSet RunQuery(String query, boolean recieveSets) throws ClassNotFoundException, SQLException {
         Class.forName("com.mysql.jdbc.Driver");
         String jdbcURL = "jdbc:mysql://localhost:3306/supermarketdb";
         String username = "root";
         String password = "";
 
-        Connection connection = DriverManager.getConnection(jdbcURL, username, password);
-        Statement st = connection.createStatement();
-        st.executeUpdate(query);
+        if(recieveSets == false) {
+            Connection connection = DriverManager.getConnection(jdbcURL, username, password);
+            Statement st = connection.createStatement();
+            st.executeUpdate(query);
+            return null;
+        } else {
+            Connection connection = DriverManager.getConnection(jdbcURL, username, password);
+            Statement st = connection.createStatement();
+            ResultSet result = st.executeQuery(query);
+            return result;
+        }
     }
     public static class UserCRUD {
         public static void Create(String firstname, String lastname, String password, String username) throws ClassNotFoundException, SQLException {
             String query = MessageFormat.format("INSERT INTO users SET" +
                     " firstname = \"{0}\", lastname = \"{1}\", password = \"{2}\"," +
                     " username = \"{3}\", balance = 0, isAdmin = 0", firstname, lastname, password, username);
-            RunQuery2(query);
+            RunQuery(query, false);
         }
-        public static void Remove() throws ClassNotFoundException, SQLException {
-            String query = "";
-            RunQuery(query);
+        public static void Delete(String username) throws ClassNotFoundException, SQLException {
+            String query = MessageFormat.format("DELETE FROM users WHERE username= \"{0}\"", username);
+            RunQuery(query, false);
         }
         public static void Update() throws SQLException, ClassNotFoundException {
             String query = "";
-            RunQuery(query);
-        }
-        public static void Delete() throws ClassNotFoundException, SQLException {
-            String query = "";
-            RunQuery(query);
+            RunQuery(query, false);
         }
     }
 
     public static class ProductCRUD {
         public static void Create(int price, String name, List<Category> categories) throws ClassNotFoundException, SQLException {
             String query = MessageFormat.format("INSERT INTO products SET price = {0}, name = \"{1}\"", price, name);
-            RunQuery2(query);
+            RunQuery(query, false);
 
             for(Category category: categories) {
                 int categoryID = category.getId();
@@ -101,20 +149,16 @@ public class Database {
 
                 query = MessageFormat.format("INSERT INTO product_category SET" +
                         " productID = {0}, categoryID = {1}", productID, categoryID);
-                RunQuery2(query);
+                RunQuery(query, false);
             }
-        }
-        public static void Remove() throws ClassNotFoundException, SQLException {
-            String query = "";
-            RunQuery(query);
         }
         public static void Update() throws SQLException, ClassNotFoundException {
             String query = "";
-            RunQuery(query);
+            RunQuery(query, false);
         }
         public static void Delete() throws ClassNotFoundException, SQLException {
             String query = "";
-            RunQuery(query);
+            RunQuery(query, false);
         }
     }
 
@@ -152,35 +196,35 @@ public class Database {
     }
 
     public static class ProductBaseImporter {
-        public static List<ProductBase> Import() throws SQLException, ClassNotFoundException {
-            List<ProductBase> resultList = new ArrayList<>();
+        public static HashMap<Integer, ProductBase> Import() throws SQLException, ClassNotFoundException {
+            HashMap<Integer, ProductBase> resultMap = new HashMap<>();
             String query = "SELECT * FROM products";
             ResultSet result = RunQuery(query);
 
             while (result.next())
-                resultList.add(new ProductBase(
+                resultMap.put(result.getInt("productID"), new ProductBase(
                         result.getString("name")
                         , result.getInt("price")
                         , result.getInt("productID")));
 
             System.out.println("Products imported");
 
-            return resultList;
+            return resultMap;
         }
     }
 
     public static class CategoryImporter {
-        public static List<Category> Import() throws SQLException, ClassNotFoundException {
-            List<Category> resultList = new ArrayList<>();
+        public static HashMap<Integer, Category> Import() throws SQLException, ClassNotFoundException {
+            HashMap<Integer, Category> resultMap = new HashMap<>();
             String query = "SELECT * FROM categories";
             ResultSet result = RunQuery(query);
 
             while (result.next())
-                resultList.add(new Category(result.getString("category"), result.getInt("categoryID")));
+                resultMap.put(result.getInt("categoryID") ,new Category(result.getString("category"), result.getInt("categoryID")));
 
             System.out.println("Categories imported");
 
-            return resultList;
+            return resultMap;
         }
     }
 }

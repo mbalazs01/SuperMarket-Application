@@ -1,5 +1,4 @@
 import java.sql.SQLException;
-import java.util.List;
 
 public class Main {
     static Database db;
@@ -7,15 +6,27 @@ public class Main {
     public static void main(String[] args) throws Exception {
         // for each product in the sql database, create an instance
         Initialize();
-        if (db.getCategories() != null) {
-            for (Category category : db.getCategories()) {
+        /* if (db.getCategories() != null) {
+            for (Category category : db.getCategories().values()) {
                 System.out.println(category.getId());
                 System.out.println(category.getName());
             }
+        } */
+
+        if (db.getProducts() != null) {
+            for (Product product : db.getProducts().values()) {
+                System.out.println(product.getName());
+                System.out.println(product.getPrice());
+                System.out.println(product.getProductID());
+
+                for(Category category: product.getCategories()) {
+                    System.out.println(category.getName());
+                }
+            }
         }
 
-        List<Category> categories = db.getCategories();
-        Database.ProductCRUD.Create(400, "Lays 100G", categories);
+        //List<Category> categories = db.getCategories().values().stream().toList();
+        //Database.ProductCRUD.Create(400, "Lays 100G", categories);
 
         /*
         Checkout checkout = Checkout.getInstance();
