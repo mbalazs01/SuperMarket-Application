@@ -1,3 +1,5 @@
+import org.apache.log4j.Logger;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -10,6 +12,7 @@ import java.util.List;
 
 // Edited version of DashboardForm from https://www.youtube.com/watch?v=gCdj9OPAeT8
 public class DashboardForm extends JFrame {
+    private static Logger logger = Logger.getLogger(DashboardForm.class);
     private JPanel dashboardPanel;
     private JLabel lbAdmin;
     private JButton btnRegister;
@@ -95,7 +98,8 @@ public class DashboardForm extends JFrame {
                     if (index >= 0) {
                         Object item = target.getModel().getElementAt(index);
                         selectedItem = item.toString();
-                        System.out.println(selectedItem + " Has been selected");
+                        logger.info(selectedItem + " Was selected from Products");
+                        // System.out.println(selectedItem + " Has been selected");
                         btnAddToCheckout.setEnabled(true);
                     }
                 }

@@ -1,3 +1,5 @@
+import org.apache.log4j.Logger;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -6,6 +8,7 @@ import java.sql.SQLException;
 
 // Edited version of LoginForm from https://www.youtube.com/watch?v=gCdj9OPAeT8
 public class LoginForm extends JDialog {
+    private static Logger logger = Logger.getLogger(LoginForm.class);
     private JTextField tfUsername;
     private JPasswordField pfPassword;
     private JButton btnOK;
@@ -37,9 +40,6 @@ public class LoginForm extends JDialog {
                     throw new RuntimeException(ex);
                 }
 
-                System.out.println("User Logged In " + user.getUsername());
-
-
                 if (user != null) {
                     dispose();
                 }
@@ -66,13 +66,10 @@ public class LoginForm extends JDialog {
         LoginForm loginForm = new LoginForm(null);
         User user = loginForm.user;
         if (user != null) {
-            System.out.println("Successful Authentication of: " + user.getUsername());
-            System.out.println("          First Name: " + user.getFirstname());
-            System.out.println("          Last Name: " + user.getLastname());
-            System.out.println("          Balance: " + user.getBalance());
+            logger.info("Successful Authentication of: " + user.getUsername());
         }
         else {
-            System.out.println("Authentication canceled");
+            logger.info("Authentication cancelled");
         }
     }
 }

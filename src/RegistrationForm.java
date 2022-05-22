@@ -1,3 +1,5 @@
+import org.apache.log4j.Logger;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -6,6 +8,7 @@ import java.sql.*;
 
 // Edited version of RegistrationForm from https://www.youtube.com/watch?v=gCdj9OPAeT8
 public class RegistrationForm extends JDialog {
+    private static Logger logger = Logger.getLogger(RegistrationForm.class);
     private JTextField tfFirstName;
     private JTextField tfLastName;
     private JTextField tfUsername;
@@ -86,10 +89,10 @@ public class RegistrationForm extends JDialog {
         RegistrationForm myForm = new RegistrationForm(null);
         User user = myForm.user;
         if (user != null) {
-            System.out.println("Successful registration of: " + user.getUsername());
+            logger.info("Successful registration of: " + user.getUsername());
         }
         else {
-            System.out.println("Registration canceled");
+            logger.info("Registration cancelled");
         }
     }
 }

@@ -1,5 +1,6 @@
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import org.apache.log4j.Logger;
 
 import java.sql.*;
 import java.text.MessageFormat;
@@ -9,7 +10,7 @@ import java.util.List;
 
 // SINGLETON DATABASE
 public class Database {
-    private List<String> usernames;
+    private static Logger logger = Logger.getLogger(Database.class);
     private HashMap<Integer, Product> products;
     private HashMap<Integer, ProductBase> productBases;
     private Multimap<Integer, Integer> productCategoryRelations = ArrayListMultimap.create();
@@ -19,7 +20,6 @@ public class Database {
     private Database() throws SQLException, ClassNotFoundException {
         productBases = ProductBaseImporter.Import();
         categories = CategoryImporter.Import();
-        usernames = UsernameImporter.Import();
         productCategoryRelations = RelationImporter.Import();
 
         products = BuildProducts();
@@ -70,12 +70,9 @@ public class Database {
             productCategories.clear();
         }
 
+        logger.info("Products successfully imported");
         return products;
     }
-    public List<String> getUsernames() {
-        return usernames;
-    }
-
     public HashMap<Integer, Product> getProducts() {
         return products;
     }
@@ -120,10 +117,12 @@ public class Database {
                     " firstname = \"{0}\", lastname = \"{1}\", password = \"{2}\"," +
                     " username = \"{3}\", balance = 0, isAdmin = 0", firstname, lastname, password, username);
             RunQuery(query, false);
+            logger.info("User Registered a new account with the username " + username);
             return new User(firstname, lastname, username);
         }
         public static void Delete(String username) throws ClassNotFoundException, SQLException {
             String query = MessageFormat.format("DELETE FROM users WHERE username= \"{0}\"", username);
+            logger.info(username + " was deleted from the database");
             RunQuery(query, false);
         }
         public static User Find(String username, String password) throws SQLException, ClassNotFoundException {
@@ -132,7 +131,7 @@ public class Database {
             if(result.next() == false) {
                 return null;
             } else {
-                System.out.println("User Found " + result.getString("username"));
+                logger.info("User logged in " + result.getString("username"));
                 return new User(result.getString("firstname"), result.getString("lastname"), result.getString("username"));
             }
         }
@@ -144,9 +143,11 @@ public class Database {
                 int numUsers = result.getInt(1);
 
                 if(numUsers > 0) {
+                    logger.info("Found users in database");
                     return true;
                 }
             }
+            logger.info("Found no users in database");
             return false;
         }
     }
@@ -182,22 +183,6 @@ public class Database {
         }
     }
 
-
-    public static class UsernameImporter {
-        public static List<String> Import() throws SQLException, ClassNotFoundException {
-            List<String> resultList = new ArrayList<>();
-            String query = "SELECT * FROM users";
-            ResultSet result = RunQuery(query);
-
-            while (result.next())
-                resultList.add(result.getString("username"));
-
-            System.out.println("Usernames imported");
-
-            return resultList;
-        }
-    }
-
     public static class RelationImporter {
         public static Multimap<Integer, Integer> Import() throws SQLException, ClassNotFoundException {
             Multimap<Integer, Integer> resultMultimap = ArrayListMultimap.create();
@@ -209,7 +194,8 @@ public class Database {
                 resultMultimap.put(result.getInt("productID"), result.getInt("categoryID"));
             }
 
-            System.out.println("Relations imported");
+            logger.info("Relations Table successfully imported");
+            //System.out.println("Relations imported");
 
             return resultMultimap;
         }
@@ -227,7 +213,8 @@ public class Database {
                         , result.getInt("price")
                         , result.getInt("productID")));
 
-            System.out.println("Products imported");
+            logger.info("Product Table successfully imported");
+            //System.out.println("Products imported");
 
             return resultMap;
         }
@@ -242,7 +229,8 @@ public class Database {
             while (result.next())
                 resultMap.put(result.getInt("categoryID") ,new Category(result.getString("category"), result.getInt("categoryID")));
 
-            System.out.println("Categories imported");
+            logger.info("Categories Table successfully imported");
+            //System.out.println("Categories imported");
 
             return resultMap;
         }

@@ -1,6 +1,9 @@
+import org.apache.log4j.Logger;
+
 import java.util.HashMap;
 import java.util.Map;
 public class Checkout {
+    private static Logger logger = Logger.getLogger(Checkout.class);
     static Checkout instance;
     private Checkout() {
 
@@ -28,13 +31,10 @@ public class Checkout {
         if(amount != 1) {
             productsInCart.remove(deleteMe);
         }
-        /*
-        if(productsInCart.containsKey(product)) {
-            amount = productsInCart.get(product) + 1;
-            productsInCart.remove(product);
-        } */
+
         productsInCart.put(product, amount);
-        System.out.println(product.getName() + " - " + product.getPrice() + " - " + productsInCart.get(product) + " Has been added to the cart");
+        logger.info(product.getName() + " - " + product.getPrice() + " - " + productsInCart.get(product) + " Has been added to the cart");
+        //System.out.println(product.getName() + " - " + product.getPrice() + " - " + productsInCart.get(product) + " Has been added to the cart");
 
     }
     public void removeProductFromCart(ProductBase product) {
@@ -54,26 +54,14 @@ public class Checkout {
         }
 
         if(amount > 0) {
-            System.out.println(product.getName() + " - " + product.getPrice() + " - " + (amount + 1) + " Has been removed from the cart");
+            logger.info(product.getName() + " - " + product.getPrice() + " - " + (amount + 1) + " Has been removed from the cart");
+            //System.out.println(product.getName() + " - " + product.getPrice() + " - " + (amount + 1) + " Has been removed from the cart");
             productsInCart.remove(deleteMe);
             productsInCart.put(deleteMe, amount);
         } else {
-            System.out.println(product.getName() + " - " + product.getPrice() + " - " + (amount + 1) + " Has been removed from the cart");
+            logger.info(product.getName() + " - " + product.getPrice() + " - " + (amount + 1) + " Has been removed from the cart");
+            //System.out.println(product.getName() + " - " + product.getPrice() + " - " + (amount + 1) + " Has been removed from the cart");
             productsInCart.remove(deleteMe);
         }
-
-
-        /*
-        if(productsInCart.containsKey(product) && productsInCart.get(product) > 1) {
-            int amount = productsInCart.get(product);
-            productsInCart.remove(product);
-
-            productsInCart.put(product, amount - 1);
-            System.out.println(product.getName() + " - " + product.getPrice() + " - " + productsInCart.get(product) + " Has been removed from the cart");
-        } else {
-            System.out.println(product.getName() + " - " + product.getPrice() + " - " + productsInCart.get(product) + " Has been removed from the cart");
-            productsInCart.remove(product);
-        }
-         */
     }
 }
