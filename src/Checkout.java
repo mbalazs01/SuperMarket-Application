@@ -18,6 +18,9 @@ public class Checkout {
     public Map<ProductBase, Integer> listItems() {
         return productsInCart;
     }
+    public void clear() {
+        productsInCart.clear();
+    }
     public void addProductToCart(ProductBase product) {
         int amount = 1;
         ProductBase deleteMe = null;

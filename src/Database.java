@@ -21,10 +21,8 @@ public class Database {
         productBases = ProductBaseImporter.Import();
         categories = CategoryImporter.Import();
         productCategoryRelations = RelationImporter.Import();
-
         products = BuildProducts();
     }
-
     public static Database getInstance() throws SQLException, ClassNotFoundException {
         if (instance == null) {
             instance = new Database();
@@ -72,6 +70,13 @@ public class Database {
 
         logger.info("Products successfully imported");
         return products;
+    }
+
+    public void reBuildDatabase() throws SQLException, ClassNotFoundException {
+        productBases = ProductBaseImporter.Import();
+        categories = CategoryImporter.Import();
+        productCategoryRelations = RelationImporter.Import();
+        products = BuildProducts();
     }
     public HashMap<Integer, Product> getProducts() {
         return products;
@@ -154,7 +159,7 @@ public class Database {
 
     public static class ProductCRUD {
         public static void Create(int price, String name, List<Category> categories) throws ClassNotFoundException, SQLException {
-            String query = MessageFormat.format("INSERT INTO products SET price = {0}, name = \"{1}\"", price, name);
+            String query = MessageFormat.format("INSERT INTO products SET price = {0}, name = \"{1}\"", String.valueOf(price), name);
             RunQuery(query, false);
 
             for(Category category: categories) {
@@ -169,9 +174,10 @@ public class Database {
                 }
 
                 query = MessageFormat.format("INSERT INTO product_category SET" +
-                        " productID = {0}, categoryID = {1}", productID, categoryID);
+                        " productID = {0}, categoryID = {1}", String.valueOf(productID), String.valueOf(categoryID));
                 RunQuery(query, false);
             }
+            logger.info("New Product " + name + " succesfully created!");
         }
         public static void Update() throws SQLException, ClassNotFoundException {
             String query = "";

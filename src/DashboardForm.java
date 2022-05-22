@@ -21,6 +21,8 @@ public class DashboardForm extends JFrame {
     private JButton btnAddToCheckout;
     private JButton btnUndo;
     private JButton btnOrder;
+    private JButton btnCreate;
+    private JButton btnDeleteFromProducts;
 
     private Checkout checkout = Checkout.getInstance();
     public DashboardForm() throws SQLException, ClassNotFoundException {
@@ -101,11 +103,78 @@ public class DashboardForm extends JFrame {
                         logger.info(selectedItem + " Was selected from Products");
                         // System.out.println(selectedItem + " Has been selected");
                         btnAddToCheckout.setEnabled(true);
+                        btnDeleteFromProducts.setEnabled(true);
                     }
                 }
             }
         });
 
+        btnDeleteFromProducts.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                commands.clear();
+                checkout.clear();
+
+                btnOrder.setEnabled(false);
+                btnUndo.setEnabled(false);
+                btnDeleteFromProducts.setEnabled(false);
+                btnAddToCheckout.setEnabled(false);
+
+                int key = Integer.parseInt(selectedItem.substring(0, 1));
+
+                try {
+                    Database.ProductCRUD.Delete(db.getProducts().get(key).getName());
+                    db.reBuildDatabase();
+                } catch (ClassNotFoundException ex) {
+                    throw new RuntimeException(ex);
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
+
+                logger.info("Deleted: " + selectedItem + " from Database");
+
+                selectedItem = "";
+
+                String productLine = "";
+
+                dlm.clear();
+                dlmCheckout.clear();
+
+                if (db.getProducts() != null) {
+                    for (Product product : db.getProducts().values()) {
+                        productLine += product.getProductID();
+                        productLine += " -- " + product.getName();
+                        productLine += " -- " + product.getPrice();
+
+                        for(Category category: product.getCategories()) {
+                            productLine += " -- " + category.getName();
+                        }
+
+                        dlm.addElement(productLine);
+                        productLine = "";
+                    }
+                    listProducts.setModel(dlm);
+                }
+
+                updateCheckout(dlmCheckout, db);
+            }
+        });
+
+        btnOrder.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                for(ProductBase product: checkout.listItems().keySet()) {
+                    logger.info("Ordered: " + product.getName() + " Amount: " + checkout.listItems().get(product));
+                }
+
+                commands.clear();
+                checkout.clear();
+
+                updateCheckout(dlmCheckout, db);
+                btnOrder.setEnabled(false);
+                btnUndo.setEnabled(false);
+            }
+        });
         btnUndo.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -114,6 +183,11 @@ public class DashboardForm extends JFrame {
                 commands.remove(lastCommand);
 
                 updateCheckout(dlmCheckout, db);
+
+                if(commands.isEmpty()) {
+                    btnUndo.setEnabled(false);
+                    btnOrder.setEnabled(false);
+                }
             }
         });
         btnAddToCheckout.addActionListener(new ActionListener() {
@@ -126,6 +200,9 @@ public class DashboardForm extends JFrame {
                 commands.add(new CheckoutCommand(checkout, CheckoutCommand.Action.Add, new ProductBase(temp1)));
                 CheckoutCommand current = commands.get(commands.size() - 1);
                 current.Call();
+
+                btnOrder.setEnabled(true);
+                btnUndo.setEnabled(true);
 
                 updateCheckout(dlmCheckout, db);
             }
@@ -141,6 +218,35 @@ public class DashboardForm extends JFrame {
                             "New user: " + user.getUsername(),
                             "Successful Registration",
                             JOptionPane.INFORMATION_MESSAGE);
+                }
+            }
+        });
+
+        btnCreate.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                ProductCreationForm productCreationForm = new ProductCreationForm(DashboardForm.this);
+
+                selectedItem = "";
+
+                String productLine = "";
+
+                dlm.clear();
+
+                if (db.getProducts() != null) {
+                    for (Product product : db.getProducts().values()) {
+                        productLine += product.getProductID();
+                        productLine += " -- " + product.getName();
+                        productLine += " -- " + product.getPrice();
+
+                        for(Category category: product.getCategories()) {
+                            productLine += " -- " + category.getName();
+                        }
+
+                        dlm.addElement(productLine);
+                        productLine = "";
+                    }
+                    listProducts.setModel(dlm);
                 }
             }
         });

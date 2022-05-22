@@ -5,6 +5,13 @@ public class User {
         this.username = username;
         this.balance = 0;
     }
+
+    public User(String firstname, String lastname, String username, int balance) {
+        this.firstname = firstname;
+        this.lastname = lastname;
+        this.username = username;
+        this.balance = balance;
+    }
     private String firstname;
     private String lastname;
     private String username;
